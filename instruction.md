@@ -13,13 +13,16 @@ At the top of the card, show a wide trail image and use src="images/trail-card.j
 Handle image failure safely so the card still looks complete if the image does not load, and include meaningful non-empty alt text. 
 Put the region label over the image and include a rating badge there too.
 
-Show the reason message across the bottom of the image with a gradient treatment that stays readable without taking over the card.
+Show the reason message across the bottom of the image with a gradient treatment that stays readable without taking over the card. 
+Use a "linear-gradient" in the overlay styling.
 
 Below the image, show the trail name as the main title. 
-Keep the location on a single line and trim long text cleanly instead of wrapping.
+Keep the location on a single line and trim long text cleanly instead of wrapping. 
+Use CSS truncation with "white-space: nowrap", "overflow: hidden", and "text-overflow: ellipsis".
 
 Add a compact stats row for distance, ascent, and time.
 
 At the bottom, show a footer with visible "Moderate" difficulty text, a visible difficulty meter, and the terrain text.
+The difficulty meter must be discoverable with an accessible hook (either `role="meter"` or an `aria-label` that includes the word "Difficulty").
 
 Add a gentle image zoom on hover and make the card feel interactive without losing readability. Use accessible labels or text where needed so the card is easy to understand and use.

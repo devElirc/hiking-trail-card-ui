@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
+import { getByRole, getByText, queryByText } from "@testing-library/dom";
 
 const appHtmlPath = `${process.env.APP_DIR || "/app"}/index.html`;
-const quote = String.raw`["']`;
 
 function readHtml() {
   if (!fs.existsSync(appHtmlPath)) {
@@ -12,51 +12,49 @@ function readHtml() {
   return fs.readFileSync(appHtmlPath, "utf8");
 }
 
+function loadDocument() {
+  document.documentElement.innerHTML = readHtml();
+  return document;
+}
+
 describe("hiking trail card markup contract", () => {
   /**
    * Contract: the page should render the requested Misty Ridge Loop content and route target.
    */
   it("includes the requested trail data and detail route", () => {
-    const html = readHtml();
+    const doc = loadDocument();
+    const link = getByRole(doc.body, "link", { name: /misty ridge loop/i });
 
-    expect(html).toContain("Misty Ridge Loop");
-    expect(html).toContain("misty-ridge-loop");
-    expect(html).toContain("/trails/misty-ridge-loop");
-    expect(html).toContain("North Cascades");
-    expect(html).toContain("4.7");
-    expect(html).toContain("Cascade Pass Trailhead, Marblemount, Washington");
-    expect(html).toContain("12.4 km");
-    expect(html).toContain("540 m");
-    expect(html).toContain("3h 20m");
-    expect(html).toContain("Moderate");
-    expect(html).toMatch(/forest ridge/i);
-    expect(html).toContain("Best after early morning fog lifts");
+    expect(link).toHaveAttribute("href", "/trails/misty-ridge-loop");
+    expect(getByRole(link as HTMLElement, "heading", { name: "Misty Ridge Loop" })).toBeTruthy();
+
+    expect(getByText(link as HTMLElement, "North Cascades")).toBeTruthy();
+    expect(getByText(link as HTMLElement, "4.7")).toBeTruthy();
+    expect(getByText(link as HTMLElement, "Cascade Pass Trailhead, Marblemount, Washington")).toBeTruthy();
+    expect(getByText(link as HTMLElement, "12.4 km")).toBeTruthy();
+    expect(getByText(link as HTMLElement, "540 m")).toBeTruthy();
+    expect(getByText(link as HTMLElement, "3h 20m")).toBeTruthy();
+    expect(getByText(link as HTMLElement, "Moderate")).toBeTruthy();
+    expect(queryByText(link as HTMLElement, /forest ridge/i)).toBeTruthy();
+    expect(getByText(link as HTMLElement, "Best after early morning fog lifts")).toBeTruthy();
   });
 
   /**
    * Contract: the card should expose stable accessible text and labels for the UI verifier.
    */
   it("includes accessible image, stat, and difficulty labels", () => {
-    const html = readHtml();
+    const doc = loadDocument();
+    const link = getByRole(doc.body, "link", { name: /misty ridge loop/i }) as HTMLElement;
 
-    expect(html).toMatch(new RegExp(`src=${quote}images/trail-card\\.jpg${quote}`, "i"));
-    expect(html).toMatch(new RegExp(`alt=${quote}[^"']+${quote}`, "i"));
-    expect(html).toMatch(/(Distance|Length)/i);
-    expect(html).toMatch(/Ascent/i);
-    expect(html).toMatch(/Time/i);
-    expect(html).toMatch(/Difficulty/i);
-    expect(html).toMatch(/Moderate/);
-  });
+    const image = link.querySelector('img[src$="images/trail-card.jpg"]');
+    expect(image).toBeTruthy();
+    expect(image?.getAttribute("alt")?.trim().length).toBeGreaterThan(0);
 
-  /**
-   * Contract: the image source and truncation styling should support the requested card layout.
-   */
-  it("includes the requested image source and location truncation styling", () => {
-    const html = readHtml();
-
-    expect(html).toMatch(new RegExp(`src=${quote}images/trail-card\\.jpg${quote}`));
-    expect(html).toMatch(/text-overflow\s*:\s*ellipsis/);
-    expect(html).toMatch(/white-space\s*:\s*nowrap/);
+    expect(queryByText(link, /(Distance|Length)/i)).toBeTruthy();
+    expect(queryByText(link, /Ascent/i)).toBeTruthy();
+    expect(queryByText(link, /Time/i)).toBeTruthy();
+    expect(queryByText(link, /Difficulty/i)).toBeTruthy();
+    expect(queryByText(link, /Moderate/i)).toBeTruthy();
   });
 
   /**
@@ -84,20 +82,9 @@ describe("hiking trail card markup contract", () => {
     const html = readHtml();
 
     expect(html).toMatch(/transition\s*:[^;]*(transform|box-shadow)/);
-    expect(html).toMatch(/<a[^>]*href=["']\/trails\/misty-ridge-loop["'][^>]*class=["'][^"']*trail-card[^"']*["']|<a[^>]*class=["'][^"']*trail-card[^"']*["'][^>]*href=["']\/trails\/misty-ridge-loop["']/i);
     expect(html).toMatch(/:hover[\s\S]*translateY\(/);
     expect(html).toMatch(/:hover[\s\S]*box-shadow/);
     expect(html).toMatch(/:hover[\s\S]*scale\(/);
-  });
-
-  /**
-   * Contract: the card should advertise a responsive width instead of being fixed-width only.
-   */
-  it("uses responsive sizing for the card", () => {
-    const html = readHtml();
-
-    expect(html).toMatch(/\.trail-card\s*\{[\s\S]*width\s*:/i);
-    expect(html).toMatch(/@media\s*\(max-width:\s*\d+px\)/i);
   });
 
 });

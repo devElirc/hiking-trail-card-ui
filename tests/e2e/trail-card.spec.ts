@@ -11,13 +11,13 @@ test("renders the Misty Ridge Loop trail card content and link target", async ({
   await expect(card).toHaveAttribute("href", "/trails/misty-ridge-loop");
 
   await expect(card.getByRole("heading", { name: "Misty Ridge Loop" })).toBeVisible();
-  await expect(card.getByText("North Cascades")).toBeVisible();
-  await expect(card.getByText("4.7")).toBeVisible();
+  await expect(card.getByText("North Cascades").first()).toBeVisible();
+  await expect(card.getByText("4.7").first()).toBeVisible();
   await expect(card.getByText("Cascade Pass Trailhead, Marblemount, Washington")).toBeVisible();
   await expect(card.getByText("12.4 km").first()).toBeVisible();
   await expect(card.getByText("540 m").first()).toBeVisible();
   await expect(card.getByText("3h 20m").first()).toBeVisible();
-  await expect(card.getByText("Moderate")).toBeVisible();
+  await expect(card.getByText("Moderate").first()).toBeVisible();
   await expect(card.getByText(/forest ridge/i).first()).toBeVisible();
   await expect(card.getByText("Best after early morning fog lifts")).toBeVisible();
 });
@@ -33,12 +33,44 @@ test("uses the trail image with readable overlays and accessible labels", async 
   await expect(image).toHaveAttribute("src", /images\/trail-card\.jpg$/);
   await expect(image).toHaveAttribute("alt", /.+/);
 
-  await expect(card.getByText("North Cascades")).toBeVisible();
-  await expect(card.getByText("4.7")).toBeVisible();
+  await expect(card.getByText("North Cascades").first()).toBeVisible();
+  await expect(card.getByText("4.7").first()).toBeVisible();
   await expect(card.getByText("Best after early morning fog lifts")).toBeVisible();
   await expect(card.getByText(/Distance|Length/i).first()).toBeVisible();
   await expect(card.getByText(/Ascent/i).first()).toBeVisible();
   await expect(card.getByText(/Time/i).first()).toBeVisible();
+});
+
+/**
+ * Verify the region and rating badges actually overlay the image area (not just appear somewhere on the page).
+ */
+test("renders region and rating badges over the image", async ({ page }) => {
+  await page.goto("/");
+
+  const card = page.getByRole("link", { name: /misty ridge loop/i });
+  const image = card.locator('img[src$="images/trail-card.jpg"]');
+  const region = card.getByText("North Cascades").first();
+  const rating = card.getByText("4.7").first();
+
+  const [imageBox, regionBox, ratingBox] = await Promise.all([
+    image.boundingBox(),
+    region.boundingBox(),
+    rating.boundingBox(),
+  ]);
+
+  expect(imageBox, "Image bounding box should be measurable").toBeTruthy();
+  expect(regionBox, "Region badge bounding box should be measurable").toBeTruthy();
+  expect(ratingBox, "Rating badge bounding box should be measurable").toBeTruthy();
+
+  if (!imageBox || !regionBox || !ratingBox) return;
+
+  const withinX = (box: { x: number; width: number }) =>
+    box.x >= imageBox.x && box.x + box.width <= imageBox.x + imageBox.width;
+  const withinY = (box: { y: number; height: number }) =>
+    box.y >= imageBox.y && box.y + box.height <= imageBox.y + imageBox.height;
+
+  expect(withinX(regionBox) && withinY(regionBox)).toBe(true);
+  expect(withinX(ratingBox) && withinY(ratingBox)).toBe(true);
 });
 
 /**
@@ -49,7 +81,7 @@ test("keeps the location on one line and exposes a difficulty meter", async ({ p
 
   const location = page.getByText("Cascade Pass Trailhead, Marblemount, Washington").first();
   const hasTruncationStyles = await location.evaluate((element) => {
-    let current = element;
+    let current: Element | null = element;
 
     for (let depth = 0; current && depth < 4; depth += 1) {
       const styles = getComputedStyle(current);
@@ -69,8 +101,12 @@ test("keeps the location on one line and exposes a difficulty meter", async ({ p
 
   expect(hasTruncationStyles).toBe(true);
 
-  await expect(page.getByText("Moderate")).toBeVisible();
-  await expect(page.locator('[aria-label*="Difficulty" i], [role="meter"], .meter, .difficulty, .difficulty-meter').first()).toBeVisible();
+  await expect(page.getByText("Moderate").first()).toBeVisible();
+  await expect(
+    page
+      .locator('[aria-label*="Difficulty" i], [role="meter"], .meter, .difficulty, .difficulty-meter')
+      .first(),
+  ).toBeVisible();
 });
 
 /**
@@ -86,8 +122,10 @@ test("adds hover lift and image zoom interactions", async ({ page }) => {
   await expect(image).toHaveCSS("transition-property", /transform|all/);
 
   const beforeShadow = await card.evaluate((element) => getComputedStyle(element).boxShadow);
+  const beforeTransform = await image.evaluate((element) => getComputedStyle(element).transform);
   await card.hover();
   await expect(card).not.toHaveCSS("box-shadow", beforeShadow);
+  await expect(image).not.toHaveCSS("transform", beforeTransform);
 });
 
 /**
