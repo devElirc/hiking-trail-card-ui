@@ -4,12 +4,27 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getByRole, getByText, queryByText } from "@testing-library/dom";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const appHtmlPath = process.env.APP_DIR
-  ? path.join(process.env.APP_DIR, "index.html")
-  : path.join(repoRoot, "environment", "app", "index.html");
+/**
+ * Harbor mounts the agent artifact at `/app/index.html`. Vitest runs from `/tests`, so going
+ * `../..` from `tests/unit` resolves to `/` — not the repo root — and breaks `environment/app/`.
+ * Prefer `APP_DIR`, then `/app`, then a repo-relative path for local checkout runs.
+ */
+function getAppHtmlPath(): string {
+  if (process.env.APP_DIR) {
+    return path.join(process.env.APP_DIR, "index.html");
+  }
+
+  const harborApp = "/app/index.html";
+  if (fs.existsSync(harborApp)) {
+    return harborApp;
+  }
+
+  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+  return path.join(repoRoot, "environment", "app", "index.html");
+}
 
 function readHtml() {
+  const appHtmlPath = getAppHtmlPath();
   if (!fs.existsSync(appHtmlPath)) {
     throw new Error(`Missing ${appHtmlPath}`);
   }
