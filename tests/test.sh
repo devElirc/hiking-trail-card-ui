@@ -33,10 +33,21 @@ if [ ! -f "$APP_FILE" ]; then
   echo "Error: $APP_FILE not found." >&2
   TEST_EXIT=1
 else
-  # Quick preflight checks aligned with instruction.md. Full behavior is asserted in Vitest + Playwright below.
+  # String/CSS greps below mirror instruction.md and catch obvious omissions fast.
+  # Behavioral coverage (nested links, badge geometry, truncation computed styles, hover diffs, responsive width)
+  # lives in tests/unit/trail-card.spec.ts and tests/e2e/trail-card.spec.ts (run via npm after this block).
   require_in_file "Misty Ridge Loop" "trail name is missing"
   require_in_file "/trails/misty-ridge-loop" "card link target is missing"
   require_in_file "North Cascades" "region text is missing"
+  require_in_file "4\\.7" "rating is missing"
+  require_in_file "12\\.4 km" "distance stat is missing"
+  require_in_file "540 m" "ascent stat is missing"
+  require_in_file "3h 20m" "time stat is missing"
+  require_in_file "Moderate" "difficulty text is missing"
+  if ! grep -Eiq "forest ridge" "$APP_FILE"; then
+    echo "Verifier check failed: terrain text (forest ridge) is missing" >&2
+    TEST_EXIT=1
+  fi
   require_in_file "Best after early morning fog lifts" "reason text is missing"
   require_in_file "images/trail-card.jpg" "trail image path is missing"
   require_in_file "linear-gradient" "gradient styling is missing"
@@ -53,7 +64,10 @@ else
     echo "Verifier check failed: difficulty meter must use role=\"meter\" or an aria-label containing Difficulty" >&2
     TEST_EXIT=1
   fi
-  require_in_file "translateY\\(" "hover lift (translateY) is missing"
+  if ! grep -Eq 'translateY\\(|translate3d\\(' "$APP_FILE"; then
+    echo "Verifier check failed: hover lift needs a vertical CSS translation (translateY or translate3d)" >&2
+    TEST_EXIT=1
+  fi
   require_in_file "box-shadow" "hover shadow styling is missing"
   require_in_file "scale\\(" "image zoom (scale) on hover is missing"
 

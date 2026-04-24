@@ -1,11 +1,16 @@
-Please update /app/index.html by replacing the placeholder with a polished hiking trail card for Misty Ridge Loop. 
-Make the entire card one clickable link that goes to /trails/misty-ridge-loop, and apply the lift and stronger shadow hover effect to that outer link. 
+Please update `/app/index.html` by replacing the placeholder with a polished hiking trail card for Misty Ridge Loop. 
+The whole card must be a single interactive surface: one outer `<a href="/trails/misty-ridge-loop">` (or equivalent single link root) that wraps the media block, title, stats, and footer so there are no nested `<a>` elements inside that card link (the automated suite checks this in the browser). 
+Apply the hover lift and stronger shadow on that same outer link. 
+For the lift, the stylesheet must use a vertical translation on hover/focus on that outer link: include either the literal CSS substring `translateY(` or `translate3d(` inside a `:hover` (or `:focus-visible`) rule that targets the outer card link, together with a stronger `box-shadow` on that same hover/focus state. 
+The hero image zoom on hover must include `scale(` in a hover/focus rule (typically on the `<img>` or its immediate hover target). 
+
 Use these exact trail details: region North Cascades, rating 4.7, location Cascade Pass Trailhead, Marblemount, Washington, distance 12.4 km, ascent 540 m, time 3h 20m, difficulty Moderate, terrain forest ridge, and note Best after early morning fog lifts. 
+The region badge must include the words North Cascades as readable text; a small decorative prefix or suffix (such as an emoji) is fine as long as North Cascades remains visible in that badge. 
 
 At the top, show a wide image using src="images/trail-card.jpg" with meaningful alt text, and keep the image area visible even if the image does not load (for example an inline `onerror` on that `<img>`, or a short `<script>` that listens for `error` on that image and swaps in a placeholder or background). 
-Place the region badge and rating badge on top of the image, and show the note across the bottom of the image on a readable overlay using a linear-gradient. 
-Below the image, show the trail name as the main heading, then the location on a single line with truncation using white-space: nowrap, overflow: hidden, and text-overflow: ellipsis. 
-Add a compact stats row with labels for Distance, Ascent, and Time. 
+Place the region badge and rating badge on top of the image (automated end-to-end tests assert their bounding boxes lie inside the trail photo area), and show the note across the bottom of the image on a readable overlay using a `linear-gradient` somewhere in the authored CSS for that overlay stack. 
+Below the image, show the trail name as the main heading inside the same card link, then the location on a single line with truncation: the stylesheet must include `white-space: nowrap`, `overflow: hidden`, and `text-overflow: ellipsis` on the location line or on an immediate wrapper that only wraps that location text; Playwright asserts those computed styles on the location node chain. 
+Add a compact stats row with labels for Distance, Ascent, and Time and the corresponding values 12.4 km, 540 m, and 3h 20m. 
 
-At the bottom, show Difficulty, Moderate, a visible difficulty meter that is accessible through role="meter" or an aria-label that includes Difficulty, and the terrain text. 
-The card should look clean and polished, work well on both mobile and desktop, and include a gentle image zoom on hover.
+At the bottom, show Difficulty, Moderate, a visible difficulty meter that is accessible through role="meter" or an aria-label that includes Difficulty, and the terrain label with the text forest ridge. 
+The card should look clean and polished, work well on both mobile and desktop, and include a gentle image zoom on hover. Automated end-to-end tests also resize a narrow viewport (~390px wide) and assert the outer card link stays within the screen width while remaining comfortably wide (not a tiny strip). 

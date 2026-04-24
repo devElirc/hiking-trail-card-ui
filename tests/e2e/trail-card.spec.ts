@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * Verify the card exposes the requested trail fields and makes the entire card a link.
+ * Verify the card link, trail copy, stats values, difficulty/terrain text, and note are all present inside the outer link.
  */
 test("renders the Misty Ridge Loop trail card content and link target", async ({ page }) => {
   await page.goto("/");
@@ -11,7 +11,7 @@ test("renders the Misty Ridge Loop trail card content and link target", async ({
   await expect(card).toHaveAttribute("href", "/trails/misty-ridge-loop");
 
   await expect(card.getByRole("heading", { name: "Misty Ridge Loop" })).toBeVisible();
-  await expect(card.getByText("North Cascades").first()).toBeVisible();
+  await expect(card.getByText(/North Cascades/).first()).toBeVisible();
   await expect(card.getByText("4.7").first()).toBeVisible();
   await expect(card.getByText("Cascade Pass Trailhead, Marblemount, Washington")).toBeVisible();
   await expect(card.getByText("12.4 km").first()).toBeVisible();
@@ -20,6 +20,22 @@ test("renders the Misty Ridge Loop trail card content and link target", async ({
   await expect(card.getByText("Moderate").first()).toBeVisible();
   await expect(card.getByText(/forest ridge/i).first()).toBeVisible();
   await expect(card.getByText(/Best after early morning fog lifts/i)).toBeVisible();
+});
+
+/**
+ * Verify Distance/Ascent/Time labels appear next to their numeric values inside the card (pairs up labels with 12.4 km, 540 m, 3h 20m).
+ */
+test("renders stats row labels paired with distance ascent and time values", async ({ page }) => {
+  await page.goto("/");
+
+  const card = page.getByRole("link", { name: /misty ridge loop/i });
+
+  await expect(card.getByText(/Distance|Length/i).first()).toBeVisible();
+  await expect(card.getByText("12.4 km").first()).toBeVisible();
+  await expect(card.getByText(/Ascent/i).first()).toBeVisible();
+  await expect(card.getByText("540 m").first()).toBeVisible();
+  await expect(card.getByText(/Time/i).first()).toBeVisible();
+  await expect(card.getByText("3h 20m").first()).toBeVisible();
 });
 
 /**
@@ -33,7 +49,7 @@ test("uses the trail image with readable overlays and accessible labels", async 
   await expect(image).toHaveAttribute("src", /images\/trail-card\.jpg$/);
   await expect(image).toHaveAttribute("alt", /.+/);
 
-  await expect(card.getByText("North Cascades").first()).toBeVisible();
+  await expect(card.getByText(/North Cascades/).first()).toBeVisible();
   await expect(card.getByText("4.7").first()).toBeVisible();
   await expect(card.getByText(/Best after early morning fog lifts/i)).toBeVisible();
   await expect(card.getByText(/Distance|Length/i).first()).toBeVisible();
@@ -49,7 +65,7 @@ test("renders region and rating badges over the image", async ({ page }) => {
 
   const card = page.getByRole("link", { name: /misty ridge loop/i });
   const image = card.locator('img[src$="images/trail-card.jpg"]');
-  const region = card.getByText("North Cascades").first();
+  const region = card.getByText(/North Cascades/).first();
   const rating = card.getByText("4.7").first();
 
   await expect(region).toBeVisible();
@@ -77,12 +93,13 @@ test("renders region and rating badges over the image", async ({ page }) => {
 });
 
 /**
- * Verify long location text is clipped cleanly and the difficulty meter is visible.
+ * Verify the location line uses nowrap/hidden/ellipsis in computed styles, and difficulty meter plus Moderate and terrain text are visible inside the card.
  */
 test("keeps the location on one line and exposes a difficulty meter", async ({ page }) => {
   await page.goto("/");
 
-  const location = page.getByText("Cascade Pass Trailhead, Marblemount, Washington").first();
+  const card = page.getByRole("link", { name: /misty ridge loop/i });
+  const location = card.getByText("Cascade Pass Trailhead, Marblemount, Washington").first();
   const hasTruncationStyles = await location.evaluate((element) => {
     let current: Element | null = element;
 
@@ -104,16 +121,18 @@ test("keeps the location on one line and exposes a difficulty meter", async ({ p
 
   expect(hasTruncationStyles).toBe(true);
 
-  await expect(page.getByText("Moderate").first()).toBeVisible();
+  await expect(card.getByText("Moderate").first()).toBeVisible();
+  await expect(card.getByText(/^Difficulty$/i).first()).toBeVisible();
   await expect(
-    page
+    card
       .locator('[aria-label*="Difficulty" i], [role="meter"], .meter, .difficulty, .difficulty-meter')
       .first(),
   ).toBeVisible();
+  await expect(card.getByText(/forest ridge/i).first()).toBeVisible();
 });
 
 /**
- * Verify the card and image have hover transitions rather than a static layout.
+ * Verify the outer link and image use transform-related transitions and that hover changes box-shadow and transforms (lift + zoom).
  */
 test("adds hover lift and image zoom interactions", async ({ page }) => {
   await page.goto("/");
@@ -126,9 +145,13 @@ test("adds hover lift and image zoom interactions", async ({ page }) => {
 
   const beforeShadow = await card.evaluate((element) => getComputedStyle(element).boxShadow);
   const beforeTransform = await image.evaluate((element) => getComputedStyle(element).transform);
+  const beforeCardTransform = await card.evaluate((element) => getComputedStyle(element).transform);
   await card.hover();
   await expect(card).not.toHaveCSS("box-shadow", beforeShadow);
   await expect(image).not.toHaveCSS("transform", beforeTransform);
+  const afterCardTransform = await card.evaluate((element) => getComputedStyle(element).transform);
+  expect(afterCardTransform).not.toBe(beforeCardTransform);
+  expect(afterCardTransform).toMatch(/matrix|translate/i);
 });
 
 /**
@@ -143,4 +166,14 @@ test("uses a responsive card width on small screens", async ({ page }) => {
 
   expect(width).toBeLessThanOrEqual(390);
   expect(width).toBeGreaterThan(280);
+});
+
+/**
+ * Verify the card link does not wrap nested anchors (invalid / confusing nested links).
+ */
+test("does not place nested links inside the trail card link", async ({ page }) => {
+  await page.goto("/");
+
+  const card = page.getByRole("link", { name: /misty ridge loop/i });
+  await expect(card.locator("a")).toHaveCount(0);
 });

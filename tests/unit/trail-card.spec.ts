@@ -37,6 +37,10 @@ function loadDocument() {
   return document;
 }
 
+/**
+ * Unit coverage mirrors instruction.md: single card link, trail copy, nested-link ban, location truncation chain,
+ * accessible stats/meter labels, image failure hook, linear-gradient on the reason overlay, and hover CSS tokens.
+ */
 describe("hiking trail card markup contract", () => {
   /**
    * Contract: the page should render the requested Misty Ridge Loop content and route target.
@@ -49,7 +53,7 @@ describe("hiking trail card markup contract", () => {
     expect(link.getAttribute("href")).toBe("/trails/misty-ridge-loop");
     expect(card.getByRole("heading", { name: "Misty Ridge Loop" })).toBeTruthy();
 
-    expect(card.getByText("North Cascades")).toBeTruthy();
+    expect(card.getByText(/North Cascades/)).toBeTruthy();
     expect(card.getByText("4.7")).toBeTruthy();
     expect(card.getByText("Cascade Pass Trailhead, Marblemount, Washington")).toBeTruthy();
     expect(card.getByText("12.4 km")).toBeTruthy();
@@ -58,6 +62,41 @@ describe("hiking trail card markup contract", () => {
     expect(card.getByText("Moderate")).toBeTruthy();
     expect(card.queryByText(/forest ridge/i)).toBeTruthy();
     expect(card.getByText(/Best after early morning fog lifts/i)).toBeTruthy();
+  });
+
+  /**
+   * Contract: the card link must not wrap inner links (single surface card).
+   */
+  it("does not nest other links inside the trail card link", () => {
+    const doc = loadDocument();
+    const link = getByRole(doc.body, "link", { name: /misty ridge loop/i }) as HTMLElement;
+    expect(link.querySelector("a")).toBeNull();
+  });
+
+  /**
+   * Contract: the location line (or its immediate wrapper) should apply ellipsis truncation CSS.
+   */
+  it("applies one-line ellipsis truncation to the location text", () => {
+    const doc = loadDocument();
+    const link = getByRole(doc.body, "link", { name: /misty ridge loop/i }) as HTMLElement;
+    const card = within(link);
+    const location = card.getByText("Cascade Pass Trailhead, Marblemount, Washington");
+
+    let current: Element | null = location;
+    let ok = false;
+    for (let depth = 0; current && depth < 6; depth += 1) {
+      const styles = getComputedStyle(current);
+      if (
+        styles.whiteSpace === "nowrap" &&
+        styles.overflow === "hidden" &&
+        styles.textOverflow === "ellipsis"
+      ) {
+        ok = true;
+        break;
+      }
+      current = current.parentElement;
+    }
+    expect(ok).toBe(true);
   });
 
   /**
@@ -150,9 +189,10 @@ describe("hiking trail card markup contract", () => {
     const html = readHtml();
 
     expect(html).toMatch(/transition\s*:[^;]*(transform|box-shadow)/);
-    expect(html).toMatch(/:hover[\s\S]*translateY\(/);
-    expect(html).toMatch(/:hover[\s\S]*box-shadow/);
-    expect(html).toMatch(/:hover[\s\S]*scale\(/);
+    const liftSelector = /:(hover|focus-visible)[\s\S]{0,800}?(translateY\(|translate3d\()/i;
+    expect(liftSelector.test(html)).toBe(true);
+    expect(/:(hover|focus-visible)[\s\S]{0,800}?box-shadow/i.test(html)).toBe(true);
+    expect(/:(hover|focus-visible)[\s\S]{0,800}?scale\(/i.test(html)).toBe(true);
   });
 
 });
