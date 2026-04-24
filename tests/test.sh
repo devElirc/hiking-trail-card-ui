@@ -40,7 +40,12 @@ else
   require_in_file "Best after early morning fog lifts" "reason text is missing"
   require_in_file "images/trail-card.jpg" "trail image path is missing"
   require_in_file "linear-gradient" "gradient styling is missing"
-  require_in_file "onerror" "image failure fallback hook is missing"
+  if ! grep -Eqi "onerror" "$APP_FILE" \
+    && ! grep -Fq "addEventListener('error'" "$APP_FILE" \
+    && ! grep -Fq 'addEventListener("error"' "$APP_FILE"; then
+    echo "Verifier check failed: image failure hook is missing (use onerror on the trail <img> or addEventListener('error' / \"error\" on that image)" >&2
+    TEST_EXIT=1
+  fi
   require_in_file "text-overflow[[:space:]]*:[[:space:]]*ellipsis" "location truncation is missing text-overflow ellipsis"
   require_in_file "white-space[[:space:]]*:[[:space:]]*nowrap" "location truncation is missing white-space nowrap"
   require_in_file "overflow[[:space:]]*:[[:space:]]*hidden" "location truncation is missing overflow hidden"

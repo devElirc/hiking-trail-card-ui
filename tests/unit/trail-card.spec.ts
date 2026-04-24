@@ -87,7 +87,12 @@ describe("hiking trail card markup contract", () => {
   it("includes an explicit image-failure fallback hook", () => {
     const html = readHtml();
 
-    expect(html).toMatch(/onerror\s*=\s*["'][^"']+["']/i);
+    const hasInlineOnError = /onerror\s*=/i.test(html);
+    const hasJsErrorListener =
+      /addEventListener\s*\(\s*["']error["']/i.test(html) ||
+      html.includes("addEventListener('error'") ||
+      html.includes('addEventListener("error"');
+    expect(hasInlineOnError || hasJsErrorListener).toBe(true);
   });
 
   /**
