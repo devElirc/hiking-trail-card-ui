@@ -222,6 +222,13 @@ html = f"""<!DOCTYPE html>
         text-transform: uppercase;
       }}
 
+      .difficulty-value {{
+        display: block;
+        margin-top: 4px;
+        color: var(--leaf-dark);
+        font-weight: 800;
+      }}
+
       .meter {{
         display: inline-grid;
         grid-template-columns: repeat(5, 18px);
@@ -292,7 +299,8 @@ html = f"""<!DOCTYPE html>
 
           <footer class="footer">
             <div>
-              <span class="difficulty-label">Difficulty: {trail['difficulty']}</span>
+              <span class="difficulty-label">Difficulty</span>
+              <span class="difficulty-value">{trail['difficulty']}</span>
               <div
                 class="meter"
                 role="meter"
