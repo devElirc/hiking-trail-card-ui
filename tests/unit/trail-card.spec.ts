@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getByRole, getByText, queryByText } from "@testing-library/dom";
+import { getByRole, within } from "@testing-library/dom";
 
 /**
  * Harbor mounts the agent artifact at `/app/index.html`. Vitest runs from `/tests`, so going
@@ -43,20 +43,21 @@ describe("hiking trail card markup contract", () => {
    */
   it("includes the requested trail data and detail route", () => {
     const doc = loadDocument();
-    const link = getByRole(doc.body, "link", { name: /misty ridge loop/i });
+    const link = getByRole(doc.body, "link", { name: /misty ridge loop/i }) as HTMLElement;
+    const card = within(link);
 
-    expect((link as Element).getAttribute("href")).toBe("/trails/misty-ridge-loop");
-    expect(getByRole(link as HTMLElement, "heading", { name: "Misty Ridge Loop" })).toBeTruthy();
+    expect(link.getAttribute("href")).toBe("/trails/misty-ridge-loop");
+    expect(card.getByRole("heading", { name: "Misty Ridge Loop" })).toBeTruthy();
 
-    expect(getByText(link as HTMLElement, "North Cascades")).toBeTruthy();
-    expect(getByText(link as HTMLElement, "4.7")).toBeTruthy();
-    expect(getByText(link as HTMLElement, "Cascade Pass Trailhead, Marblemount, Washington")).toBeTruthy();
-    expect(getByText(link as HTMLElement, "12.4 km")).toBeTruthy();
-    expect(getByText(link as HTMLElement, "540 m")).toBeTruthy();
-    expect(getByText(link as HTMLElement, "3h 20m")).toBeTruthy();
-    expect(getByText(link as HTMLElement, "Moderate")).toBeTruthy();
-    expect(queryByText(link as HTMLElement, /forest ridge/i)).toBeTruthy();
-    expect(getByText(link as HTMLElement, "Best after early morning fog lifts")).toBeTruthy();
+    expect(card.getByText("North Cascades")).toBeTruthy();
+    expect(card.getByText("4.7")).toBeTruthy();
+    expect(card.getByText("Cascade Pass Trailhead, Marblemount, Washington")).toBeTruthy();
+    expect(card.getByText("12.4 km")).toBeTruthy();
+    expect(card.getByText("540 m")).toBeTruthy();
+    expect(card.getByText("3h 20m")).toBeTruthy();
+    expect(card.getByText("Moderate")).toBeTruthy();
+    expect(card.queryByText(/forest ridge/i)).toBeTruthy();
+    expect(card.getByText(/Best after early morning fog lifts/i)).toBeTruthy();
   });
 
   /**
@@ -65,20 +66,21 @@ describe("hiking trail card markup contract", () => {
   it("includes accessible image, stat, and difficulty labels", () => {
     const doc = loadDocument();
     const link = getByRole(doc.body, "link", { name: /misty ridge loop/i }) as HTMLElement;
+    const card = within(link);
 
     const image = link.querySelector('img[src$="images/trail-card.jpg"]');
     expect(image).toBeTruthy();
     expect(image?.getAttribute("alt")?.trim().length).toBeGreaterThan(0);
 
-    expect(queryByText(link, /(Distance|Length)/i)).toBeTruthy();
-    expect(queryByText(link, /Ascent/i)).toBeTruthy();
-    expect(queryByText(link, /Time/i)).toBeTruthy();
+    expect(card.queryByText(/(Distance|Length)/i)).toBeTruthy();
+    expect(card.queryByText(/Ascent/i)).toBeTruthy();
+    expect(card.queryByText(/Time/i)).toBeTruthy();
     const difficultyHook =
       link.querySelector('[role="meter"]') ??
       link.querySelector('[aria-label*="Difficulty" i]') ??
-      queryByText(link, /Difficulty/i);
+      card.queryByText(/Difficulty/i);
     expect(difficultyHook).toBeTruthy();
-    expect(queryByText(link, /Moderate/i)).toBeTruthy();
+    expect(card.queryByText(/Moderate/i)).toBeTruthy();
   });
 
   /**
@@ -102,7 +104,7 @@ describe("hiking trail card markup contract", () => {
   it("applies a linear-gradient to the reason note overlay area", () => {
     const doc = loadDocument();
     const link = getByRole(doc.body, "link", { name: /misty ridge loop/i }) as HTMLElement;
-    const reason = getByText(link, /Best after early morning fog lifts/);
+    const reason = within(link).getByText(/Best after early morning fog lifts/i);
 
     let current: Element | null = reason;
     let foundGradient = false;

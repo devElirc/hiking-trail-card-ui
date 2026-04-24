@@ -19,7 +19,7 @@ test("renders the Misty Ridge Loop trail card content and link target", async ({
   await expect(card.getByText("3h 20m").first()).toBeVisible();
   await expect(card.getByText("Moderate").first()).toBeVisible();
   await expect(card.getByText(/forest ridge/i).first()).toBeVisible();
-  await expect(card.getByText("Best after early morning fog lifts")).toBeVisible();
+  await expect(card.getByText(/Best after early morning fog lifts/i)).toBeVisible();
 });
 
 /**
@@ -35,7 +35,7 @@ test("uses the trail image with readable overlays and accessible labels", async 
 
   await expect(card.getByText("North Cascades").first()).toBeVisible();
   await expect(card.getByText("4.7").first()).toBeVisible();
-  await expect(card.getByText("Best after early morning fog lifts")).toBeVisible();
+  await expect(card.getByText(/Best after early morning fog lifts/i)).toBeVisible();
   await expect(card.getByText(/Distance|Length/i).first()).toBeVisible();
   await expect(card.getByText(/Ascent/i).first()).toBeVisible();
   await expect(card.getByText(/Time/i).first()).toBeVisible();
