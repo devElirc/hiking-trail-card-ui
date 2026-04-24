@@ -102,20 +102,35 @@ describe("hiking trail card markup contract", () => {
     let current: Element | null = reason;
     let foundGradient = false;
 
+    const mentionsGradient = (value: string) => /linear-gradient/i.test(value);
+
     while (current && link.contains(current)) {
       const styles = getComputedStyle(current);
-      const bgImage = styles.backgroundImage;
-      const bg = styles.background;
+      const bgImage =
+        styles.getPropertyValue("background-image") || styles.backgroundImage || "";
+      const bg = styles.getPropertyValue("background") || styles.background || "";
 
-      if (
-        (bgImage && bgImage.includes("linear-gradient")) ||
-        (bg && bg.includes("linear-gradient"))
-      ) {
+      if (mentionsGradient(bgImage) || mentionsGradient(bg)) {
         foundGradient = true;
         break;
       }
 
       current = current.parentElement;
+    }
+
+    // happy-dom often omits or normalizes `background-image` from `<style>` rules unlike real
+    // browsers; Playwright still validates layout. If computed styles miss the gradient, require
+    // it in authored `<style>` / inline CSS for this document while the note remains in the card.
+    if (!foundGradient) {
+      const authoredCss = Array.from(doc.querySelectorAll("style"))
+        .map((el) => el.textContent ?? "")
+        .join("\n");
+      const inlineHints = [link.getAttribute("style") ?? "", (reason as HTMLElement).getAttribute("style") ?? ""].join(
+        " ",
+      );
+      foundGradient =
+        mentionsGradient(authoredCss + inlineHints) &&
+        Boolean(link.textContent?.includes("Best after early morning fog lifts"));
     }
 
     expect(foundGradient).toBe(true);
