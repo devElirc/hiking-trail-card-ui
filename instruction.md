@@ -23,6 +23,6 @@ Use CSS truncation with "white-space: nowrap", "overflow: hidden", and "text-ove
 Add a compact stats row for distance, ascent, and time.
 
 At the bottom, show a footer with visible "Moderate" difficulty text, a visible difficulty meter, and the terrain text.
-The difficulty meter must be discoverable with an accessible hook (either `role="meter"` or an `aria-label` that includes the word "Difficulty").
+The difficulty meter must be discoverable with an accessible hook (either "role="meter"" or an "aria-label" that includes the word "Difficulty").
 
 Add a gentle image zoom on hover and make the card feel interactive without losing readability. Use accessible labels or text where needed so the card is easy to understand and use.

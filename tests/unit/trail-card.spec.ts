@@ -25,7 +25,7 @@ describe("hiking trail card markup contract", () => {
     const doc = loadDocument();
     const link = getByRole(doc.body, "link", { name: /misty ridge loop/i });
 
-    expect(link).toHaveAttribute("href", "/trails/misty-ridge-loop");
+    expect((link as Element).getAttribute("href")).toBe("/trails/misty-ridge-loop");
     expect(getByRole(link as HTMLElement, "heading", { name: "Misty Ridge Loop" })).toBeTruthy();
 
     expect(getByText(link as HTMLElement, "North Cascades")).toBeTruthy();
