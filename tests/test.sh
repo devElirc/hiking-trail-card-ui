@@ -64,12 +64,15 @@ else
     echo "Verifier check failed: difficulty meter must use role=\"meter\" or an aria-label containing Difficulty" >&2
     TEST_EXIT=1
   fi
-  if ! grep -Eq 'translateY\\(|translate3d\\(' "$APP_FILE"; then
+  if ! grep -Fq 'translateY(' "$APP_FILE" && ! grep -Fq 'translate3d(' "$APP_FILE"; then
     echo "Verifier check failed: hover lift needs a vertical CSS translation (translateY or translate3d)" >&2
     TEST_EXIT=1
   fi
   require_in_file "box-shadow" "hover shadow styling is missing"
-  require_in_file "scale\\(" "image zoom (scale) on hover is missing"
+  if ! grep -Fq 'scale(' "$APP_FILE"; then
+    echo "Verifier check failed: image zoom (scale) on hover is missing" >&2
+    TEST_EXIT=1
+  fi
 
   cd "$TEST_DIR" || TEST_EXIT=1
 
