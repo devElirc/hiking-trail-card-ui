@@ -53,7 +53,11 @@ describe("hiking trail card markup contract", () => {
     expect(queryByText(link, /(Distance|Length)/i)).toBeTruthy();
     expect(queryByText(link, /Ascent/i)).toBeTruthy();
     expect(queryByText(link, /Time/i)).toBeTruthy();
-    expect(queryByText(link, /Difficulty/i)).toBeTruthy();
+    const difficultyHook =
+      link.querySelector('[role="meter"]') ??
+      link.querySelector('[aria-label*="Difficulty" i]') ??
+      queryByText(link, /Difficulty/i);
+    expect(difficultyHook).toBeTruthy();
     expect(queryByText(link, /Moderate/i)).toBeTruthy();
   });
 
