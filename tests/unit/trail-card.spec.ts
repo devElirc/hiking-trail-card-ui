@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { getByRole, getByText, queryByText } from "@testing-library/dom";
 
-const appHtmlPath = `${process.env.APP_DIR || "/app"}/index.html`;
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const appHtmlPath = process.env.APP_DIR
+  ? path.join(process.env.APP_DIR, "index.html")
+  : path.join(repoRoot, "environment", "app", "index.html");
 
 function readHtml() {
   if (!fs.existsSync(appHtmlPath)) {
@@ -71,12 +76,34 @@ describe("hiking trail card markup contract", () => {
   });
 
   /**
-   * Contract: the reason overlay should use a gradient background, as required by the task.
+   * Contract: the reason note at the bottom of the image sits on an overlay that uses linear-gradient
+   * (on the note element or an ancestor wrapper), not only on unrelated page chrome.
    */
-  it("applies a gradient background to the reason overlay", () => {
-    const html = readHtml();
+  it("applies a linear-gradient to the reason note overlay area", () => {
+    const doc = loadDocument();
+    const link = getByRole(doc.body, "link", { name: /misty ridge loop/i }) as HTMLElement;
+    const reason = getByText(link, /Best after early morning fog lifts/);
 
-    expect(html).toMatch(/\.[A-Za-z0-9_-]*reason[A-Za-z0-9_-]*[^{]*\{[^}]*background[^:]*:[^;]*gradient/is);
+    let current: Element | null = reason;
+    let foundGradient = false;
+
+    while (current && link.contains(current)) {
+      const styles = getComputedStyle(current);
+      const bgImage = styles.backgroundImage;
+      const bg = styles.background;
+
+      if (
+        (bgImage && bgImage.includes("linear-gradient")) ||
+        (bg && bg.includes("linear-gradient"))
+      ) {
+        foundGradient = true;
+        break;
+      }
+
+      current = current.parentElement;
+    }
+
+    expect(foundGradient).toBe(true);
   });
 
   /**

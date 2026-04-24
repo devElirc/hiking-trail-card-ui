@@ -52,6 +52,9 @@ test("renders region and rating badges over the image", async ({ page }) => {
   const region = card.getByText("North Cascades").first();
   const rating = card.getByText("4.7").first();
 
+  await expect(region).toBeVisible();
+  await expect(rating).toBeVisible();
+
   const [imageBox, regionBox, ratingBox] = await Promise.all([
     image.boundingBox(),
     region.boundingBox(),

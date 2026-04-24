@@ -8,6 +8,7 @@
     "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@types/node": "22.10.2",
     "@playwright/test": "1.49.0",
     "@testing-library/dom": "10.4.0",
     "happy-dom": "15.11.7",
