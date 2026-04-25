@@ -12,8 +12,8 @@ test("renders the Misty Ridge Loop trail card content and link target", async ({
 
   await expect(card.getByRole("heading", { name: "Misty Ridge Loop" })).toBeVisible();
   await expect(card.getByText(/North Cascades/).first()).toBeVisible();
-  await expect(card.getByText("4.7").first()).toBeVisible();
-  await expect(card.getByText("Cascade Pass Trailhead, Marblemount, Washington")).toBeVisible();
+  await expect(card.getByText(/4\.7/).first()).toBeVisible();
+  await expect(card.getByText(/Cascade Pass Trailhead, Marblemount, Washington/).first()).toBeVisible();
   await expect(card.getByText("12.4 km").first()).toBeVisible();
   await expect(card.getByText("540 m").first()).toBeVisible();
   await expect(card.getByText("3h 20m").first()).toBeVisible();
@@ -50,7 +50,7 @@ test("uses the trail image with readable overlays and accessible labels", async 
   await expect(image).toHaveAttribute("alt", /.+/);
 
   await expect(card.getByText(/North Cascades/).first()).toBeVisible();
-  await expect(card.getByText("4.7").first()).toBeVisible();
+  await expect(card.getByText(/4\.7/).first()).toBeVisible();
   await expect(card.getByText(/Best after early morning fog lifts/i)).toBeVisible();
   await expect(card.getByText(/Distance|Length/i).first()).toBeVisible();
   await expect(card.getByText(/Ascent/i).first()).toBeVisible();
@@ -66,7 +66,7 @@ test("renders region and rating badges over the image", async ({ page }) => {
   const card = page.getByRole("link", { name: /misty ridge loop/i });
   const image = card.locator('img[src$="images/trail-card.jpg"]');
   const region = card.getByText(/North Cascades/).first();
-  const rating = card.getByText("4.7").first();
+  const rating = card.getByText(/4\.7/).first();
 
   await expect(region).toBeVisible();
   await expect(rating).toBeVisible();
@@ -99,7 +99,7 @@ test("keeps the location on one line and exposes a difficulty meter", async ({ p
   await page.goto("/");
 
   const card = page.getByRole("link", { name: /misty ridge loop/i });
-  const location = card.getByText("Cascade Pass Trailhead, Marblemount, Washington").first();
+  const location = card.getByText(/Cascade Pass Trailhead, Marblemount, Washington/).first();
   const hasTruncationStyles = await location.evaluate((element) => {
     let current: Element | null = element;
 

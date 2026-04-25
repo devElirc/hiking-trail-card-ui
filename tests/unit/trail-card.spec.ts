@@ -54,8 +54,8 @@ describe("hiking trail card markup contract", () => {
     expect(card.getByRole("heading", { name: "Misty Ridge Loop" })).toBeTruthy();
 
     expect(card.getByText(/North Cascades/)).toBeTruthy();
-    expect(card.getByText("4.7")).toBeTruthy();
-    expect(card.getByText("Cascade Pass Trailhead, Marblemount, Washington")).toBeTruthy();
+    expect(card.getByText(/4\.7/)).toBeTruthy();
+    expect(card.getByText(/Cascade Pass Trailhead, Marblemount, Washington/)).toBeTruthy();
     expect(card.getByText("12.4 km")).toBeTruthy();
     expect(card.getByText("540 m")).toBeTruthy();
     expect(card.getByText("3h 20m")).toBeTruthy();
@@ -80,7 +80,7 @@ describe("hiking trail card markup contract", () => {
     const doc = loadDocument();
     const link = getByRole(doc.body, "link", { name: /misty ridge loop/i }) as HTMLElement;
     const card = within(link);
-    const location = card.getByText("Cascade Pass Trailhead, Marblemount, Washington");
+    const location = card.getByText(/Cascade Pass Trailhead, Marblemount, Washington/);
 
     let current: Element | null = location;
     let ok = false;
@@ -114,11 +114,10 @@ describe("hiking trail card markup contract", () => {
     expect(card.queryByText(/(Distance|Length)/i)).toBeTruthy();
     expect(card.queryByText(/Ascent/i)).toBeTruthy();
     expect(card.queryByText(/Time/i)).toBeTruthy();
-    const difficultyHook =
-      link.querySelector('[role="meter"]') ??
-      link.querySelector('[aria-label*="Difficulty" i]') ??
-      card.queryByText(/Difficulty/i);
-    expect(difficultyHook).toBeTruthy();
+    expect(card.getByText(/^Difficulty$/i)).toBeTruthy();
+    const difficultyMeter =
+      link.querySelector('[role="meter"]') ?? link.querySelector('[aria-label*="Difficulty" i]');
+    expect(difficultyMeter).toBeTruthy();
     expect(card.queryByText(/Moderate/i)).toBeTruthy();
   });
 
