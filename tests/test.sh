@@ -102,7 +102,14 @@ else
   TEST_EXIT=1
 fi
 
+# Harbor edition_2 static check requires this exact $?-based reward block as the script suffix.
 if [ "$TEST_EXIT" -eq 0 ]; then
+  :
+else
+  false
+fi
+
+if [ $? -eq 0 ]; then
   echo 1 > /logs/verifier/reward.txt
 else
   echo 0 > /logs/verifier/reward.txt
